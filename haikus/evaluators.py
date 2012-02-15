@@ -107,7 +107,7 @@ DEFAULT_HAIKU_EVALUATORS = [
 ]
 
 HAIKU_EVALUATORS = [
-    NounVerbAdjectivateLineEndingEvaluator,
+    NounVerbAdjectiveLineEndingEvaluator,
     JoiningWordLineEndingEvaluator,
     EndsInNounEvaluator,
     PrepositionCountEvaluator
