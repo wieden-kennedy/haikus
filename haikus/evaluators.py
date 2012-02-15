@@ -105,3 +105,10 @@ DEFAULT_HAIKU_EVALUATORS = [
     (EndsInNounEvaluator, 1),
     (PrepositionCountEvaluator, 1)
 ]
+
+HAIKU_EVALUATORS = [
+    NounVerbAdjectivateLineEndingEvaluator,
+    JoiningWordLineEndingEvaluator,
+    EndsInNounEvaluator,
+    PrepositionCountEvaluator
+]
