@@ -37,12 +37,12 @@ class EvaluatorsTest(TestCase):
         
         #comment with 2 lines that end in noun/verbs
         text = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.")
-        #should score 66 
-        self.assertEqual(pos_evaluator(text), 2*100/3)
+        #should score 66
+        self.assertEqual(pos_evaluator(text), 66)
 
         # 1 verb, 1 noun, 1 pronoun
         text.set_text("Application is the most wonderful artist that man can show us")
-        #should score 66                                                                                                                                                                                   
+        #should score 66
         self.assertEqual(pos_evaluator(text), 2*100/3) 
                
         #No verbs/nouns at line ends,

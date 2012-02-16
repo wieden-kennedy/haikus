@@ -10,6 +10,7 @@ from haikus.evaluators import DEFAULT_HAIKU_EVALUATORS
 global WORD_DICT
 WORD_DICT = cmudict.dict()
 
+
 class HaikuText(object):
     """
     A wrapper around some sequence of text
@@ -28,7 +29,6 @@ class HaikuText(object):
         Strip punctuation from this text
         """
         exclude = set(string.punctuation).difference(set("'"))
-        exclude = []
         s = ''.join(ch for ch in self.get_text() if ch not in exclude)
         return s
 
@@ -50,11 +50,14 @@ class HaikuText(object):
         for tree in matches:
             return (len([phoneme for phoneme in tree if phoneme[-1].isdigit()]), word)
 
-    def syllable_map(self):
+    def syllable_map(self, strip_punctuation=False):
         """
         Map words in this text to their syllable count
         """
-        s = self.filtered_text()
+        if strip_punctuation:
+            s = self.filtered_text()
+        else:
+            s = self.get_text()
         try:
             return map(self.word_syllables, s.split())
         except KeyError, e:
@@ -74,16 +77,17 @@ class HaikuText(object):
         bigrams = ()
         if self.has_haiku():
             lines = [line.split(" ") for line in self.haiku()]
-            bigrams = ((lines[0][-1], lines[1][0]), (lines[1][-1], lines[2][0]))
+            bigrams = ((self.filtered_word(lines[0][-1]), self.filtered_word(lines[1][0])),
+                       (self.filtered_word(lines[1][-1]), self.filtered_word(lines[2][0])))
         return bigrams
     
-    def haiku(self):
+    def haiku(self, strip_punctuation=False):
         """
         Find a haiku in this text
         """
         haiku = [5, 12, 17]
         cumulative = [0]
-        syllable_map = self.syllable_map()
+        syllable_map = self.syllable_map(strip_punctuation=strip_punctuation)
         for w in syllable_map:
             cumulative.append(cumulative[-1] + w[0])
         cumulative = cumulative[1:]

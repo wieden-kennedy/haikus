@@ -38,12 +38,14 @@ class NounVerbAdjectiveLineEndingEvaluator(HaikuEvaluator):
     """
     def evaluate(self, comment):
         score = 0
-        nv_regex = re.compile("(^N.*$|^V.*$|^J.*$)")
-        lines = comment.haiku()
+        nv_regex = re.compile("(^N.*|^V.*|^J.*)")
+        lines = comment.haiku(strip_punctuation=True)
 
         if lines:
             for line in lines:
                 tagged_words = nltk.pos_tag(line.split())
+                print tagged_words
+                print tagged_words[-1][1]
                 if nv_regex.match(tagged_words[-1][1]) is not None:
                     score += 100
             score = score/len(lines)
@@ -75,7 +77,7 @@ class EndsInNounEvaluator(HaikuEvaluator):
     def evaluate(self, comment):
         score = 0
         noun_regex = re.compile("(^N.*$|PRP.*$)")
-        lines = comment.haiku()
+        lines = comment.haiku(strip_punctuation=True)
         line = lines[-1]
         tagged_words = nltk.pos_tag(line.split())
         if noun_regex.match(tagged_words[-1][1]) is not None:
@@ -87,10 +89,11 @@ class PrepositionCountEvaluator(HaikuEvaluator):
     If the entire haiku ends in a noun, boost its score.
     """
     def evaluate(self, comment):
-        lines = comment.haiku()
+        lines = comment.haiku(strip_punctuation=True)
         tags = []
         seeking = ['IN']
         for line in lines:
+            nltk.pos_tag(line.split())
             [tags.append(tag) for word, tag in nltk.pos_tag(line.split())]
         found = [tag for tag in tags if tag in seeking]
         score = 100 - math.exp(len(found))
@@ -143,12 +146,18 @@ DEFAULT_HAIKU_EVALUATORS = [
     (NounVerbAdjectiveLineEndingEvaluator, 1),
     (JoiningWordLineEndingEvaluator, 1),
     (EndsInNounEvaluator, 1),
-    (PrepositionCountEvaluator, 1)
+    (PrepositionCountEvaluator, 1),
+    (LineIsFullSentenceEvaluator, 1),
+    (HaikuIsFullSentenceEvaluator, 1),
+    (LineEndPunctuationEvaluator, 1),
 ]
 
 HAIKU_EVALUATORS = [
     NounVerbAdjectiveLineEndingEvaluator,
     JoiningWordLineEndingEvaluator,
     EndsInNounEvaluator,
-    PrepositionCountEvaluator
+    PrepositionCountEvaluator,
+    LineIsFullSentenceEvaluator,
+    HaikuIsFullSentenceEvaluator,
+    LineEndPunctuationEvaluator,
 ]
