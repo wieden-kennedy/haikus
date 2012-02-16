@@ -10,7 +10,6 @@ from haikus.evaluators import DEFAULT_HAIKU_EVALUATORS
 global WORD_DICT
 WORD_DICT = cmudict.dict()
 
-
 class HaikuText(object):
     """
     A wrapper around some sequence of text
@@ -29,15 +28,25 @@ class HaikuText(object):
         Strip punctuation from this text
         """
         exclude = set(string.punctuation).difference(set("'"))
+        exclude = []
         s = ''.join(ch for ch in self.get_text() if ch not in exclude)
         return s
+
+    def filtered_word(self, word):
+        """
+        Strip punctation from the given token so we can look it up in
+        our word dictionary
+        """
+        exclude = set(string.punctuation).difference(set("'"))
+        filtered = ''.join(ch for ch in word if ch not in exclude)
+        return filtered
     
     def word_syllables(self, word, override_word=None):
         """
         Get the syllable count for the given word, according to WORD_DICT
         """
         word = word.encode('ascii', 'ignore').strip().lower()
-        matches = WORD_DICT[word]
+        matches = WORD_DICT[self.filtered_word(word)]
         for tree in matches:
             return (len([phoneme for phoneme in tree if phoneme[-1].isdigit()]), word)
 

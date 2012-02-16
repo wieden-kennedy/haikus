@@ -99,6 +99,46 @@ class PrepositionCountEvaluator(HaikuEvaluator):
         else:
             return score
 
+class LineEndPunctuationEvaluator(HaikuEvaluator):
+    """
+    If a haiku's lines end in punctuation (,!?; or .) boost its score
+    """
+    def evaluate(self, comment):
+        score = 0
+        terminal_punctuation = set(',','!','?','.',';')
+        lines = comment.haiku()
+        for line in lines:
+            if line[-1] in terminal_punctuation:
+                score += 100
+        return score/len(lines)
+
+class LineIsFullSentenceEvaluator(HaikuEvaluator):
+    """
+    If a line in a haiku is a full sentence, boost the score
+    """
+    def evaluate(self, comment):
+        sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+        score = 0
+        lines = comment.haiku()
+        for line in lines:
+            if line in sentence_tokenizer.tokenize(line):
+                score += 100
+        return score/len(lines)
+
+
+class HaikuIsFullSentenceEvaluator(HaikuEvaluator):
+    """
+    If the entire haiku forms a complete sentence, boost the score
+    """
+    def evaluate(self, comment):
+        score = 0
+        sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+        haiku = ' '.join(comment.haiku())
+        if haiku in sentence_tokenizer.tokenize(haiku):
+            score += 100
+        return score
+        
+
 DEFAULT_HAIKU_EVALUATORS = [
     (NounVerbAdjectiveLineEndingEvaluator, 1),
     (JoiningWordLineEndingEvaluator, 1),
