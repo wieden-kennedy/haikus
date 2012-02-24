@@ -108,7 +108,7 @@ class LineEndPunctuationEvaluator(HaikuEvaluator):
     """
     def evaluate(self, comment):
         score = 0
-        terminal_punctuation = set(',','!','?','.',';')
+        terminal_punctuation = set([',','!','?','.',';'])
         lines = comment.haiku()
         for line in lines:
             if line[-1] in terminal_punctuation:

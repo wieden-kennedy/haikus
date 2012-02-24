@@ -129,3 +129,31 @@ class BigramExtraction(TestCase):
     def test_bigram_extraction(self):
         bigrams = self.comment.line_end_bigrams()
         self.assertEquals((('at', 'one'), ('it', 'jump')), bigrams)
+
+
+class UnknownWordHandling(TestCase):
+    def test_handle_unknown(self):
+        haiku = HaikuText(text="this is a new vogue, she always has a new vogue, she never foobaz")
+        #foobar is not in cmudict!
+        from haikus.haikutext import WORD_DICT
+        self.assertEqual(WORD_DICT.get("foobaz"), None)
+
+        #however, we can count 2 syllables in it anyhow
+        self.assertTrue((2, "foobaz") in haiku.syllable_map())
+
+class HaikuIsFullSentenceEvaluatorTest(TestCase):
+    """
+    Test the haiku is full sentence evaluation
+    """
+    pass
+
+class LineIsFullSentenceEvaluatorTest(TestCase):
+    """
+    """
+    pass
+
+class LineEndsInPunctuationEvaluatorTest(TestCase):
+    """
+    """
+    pass
+    

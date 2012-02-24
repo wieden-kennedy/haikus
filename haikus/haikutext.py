@@ -5,11 +5,11 @@ defined criteria
 import nltk
 import string
 from nltk.corpus import cmudict
+from nltk_contrib.readability import syllables_en
 from haikus.evaluators import DEFAULT_HAIKU_EVALUATORS
 
 global WORD_DICT
 WORD_DICT = cmudict.dict()
-
 
 class HaikuText(object):
     """
@@ -46,9 +46,12 @@ class HaikuText(object):
         Get the syllable count for the given word, according to WORD_DICT
         """
         word = word.encode('ascii', 'ignore').strip().lower()
-        matches = WORD_DICT[self.filtered_word(word)]
-        for tree in matches:
-            return (len([phoneme for phoneme in tree if phoneme[-1].isdigit()]), word)
+        try:
+            matches = WORD_DICT[self.filtered_word(word)]
+            for tree in matches:
+                return (len([phoneme for phoneme in tree if phoneme[-1].isdigit()]), word)
+        except KeyError:
+            return self.unknown_word_handler(word)
 
     def syllable_map(self, strip_punctuation=False):
         """
@@ -58,11 +61,8 @@ class HaikuText(object):
             s = self.filtered_text()
         else:
             s = self.get_text()
-        try:
-            return map(self.word_syllables, s.split())
-        except KeyError, e:
-            return []
-        
+        return map(self.word_syllables, s.split())
+                
     def syllable_count(self):
         """
         Sum the syllable counts for all words in this text
@@ -133,3 +133,14 @@ class HaikuText(object):
             except ZeroDivisionError:
                 return 0
         return score
+
+    def unknown_word_handler(self, word):
+        """
+        handle words outside of cmudict by attempting to count their syllables
+        """
+        syllable_count = syllables_en.count(self.filtered_word(word))
+        if syllable_count > 0:
+            return (syllable_count, word)
+        else:
+            #give the word 1 syllable as it's probably something like f*** or thbpt!
+            return (1, word)
