@@ -148,5 +148,4 @@ class HaikuText(object):
         if syllable_count > 0:
             return (syllable_count, word)
         else:
-            print word
             raise NonwordError("%s has no syllables" % word)
