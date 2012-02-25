@@ -39,13 +39,11 @@ class NounVerbAdjectiveLineEndingEvaluator(HaikuEvaluator):
     def evaluate(self, comment):
         score = 0
         nv_regex = re.compile("(^N.*|^V.*|^J.*)")
-        lines = comment.haiku(strip_punctuation=True)
+        lines = comment.haiku()
 
         if lines:
             for line in lines:
                 tagged_words = nltk.pos_tag(line.split())
-                print tagged_words
-                print tagged_words[-1][1]
                 if nv_regex.match(tagged_words[-1][1]) is not None:
                     score += 100
             score = score/len(lines)
@@ -89,7 +87,7 @@ class PrepositionCountEvaluator(HaikuEvaluator):
     If the entire haiku ends in a noun, boost its score.
     """
     def evaluate(self, comment):
-        lines = comment.haiku(strip_punctuation=True)
+        lines = comment.haiku()
         tags = []
         seeking = ['IN']
         for line in lines:
@@ -109,11 +107,13 @@ class LineEndPunctuationEvaluator(HaikuEvaluator):
     def evaluate(self, comment):
         score = 0
         terminal_punctuation = set([',','!','?','.',';'])
-        lines = comment.haiku()
-        for line in lines:
-            if line[-1] in terminal_punctuation:
-                score += 100
-        return score/len(lines)
+        lines = comment.haiku(strip_punctuation=False)
+        if lines:
+            for line in lines:
+                if line[-1] in terminal_punctuation:
+                    score += 100
+            return score/len(lines)
+        return 0
 
 class LineIsFullSentenceEvaluator(HaikuEvaluator):
     """
@@ -122,11 +122,13 @@ class LineIsFullSentenceEvaluator(HaikuEvaluator):
     def evaluate(self, comment):
         sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
         score = 0
-        lines = comment.haiku()
-        for line in lines:
-            if line in sentence_tokenizer.tokenize(line):
-                score += 100
-        return score/len(lines)
+        lines = comment.haiku(strip_punctuation=False)
+        if lines:
+            for line in lines:
+                if line in sentence_tokenizer.tokenize(line):
+                    score += 100
+            return score/len(lines)
+        return 0
 
 
 class HaikuIsFullSentenceEvaluator(HaikuEvaluator):
@@ -136,9 +138,11 @@ class HaikuIsFullSentenceEvaluator(HaikuEvaluator):
     def evaluate(self, comment):
         score = 0
         sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-        haiku = ' '.join(comment.haiku())
-        if haiku in sentence_tokenizer.tokenize(haiku):
-            score += 100
+        lines = comment.haiku(strip_punctuation=False)
+        if lines:
+            haiku = ' '.join(lines)
+            if haiku in sentence_tokenizer.tokenize(haiku):
+                score += 100
         return score
         
 

@@ -11,6 +11,9 @@ from haikus.evaluators import DEFAULT_HAIKU_EVALUATORS
 global WORD_DICT
 WORD_DICT = cmudict.dict()
 
+class NonwordError(Exception):
+    pass
+
 class HaikuText(object):
     """
     A wrapper around some sequence of text
@@ -61,7 +64,10 @@ class HaikuText(object):
             s = self.filtered_text()
         else:
             s = self.get_text()
-        return map(self.word_syllables, s.split())
+        try:
+            return map(self.word_syllables, s.split())
+        except NonwordError:
+            return []
                 
     def syllable_count(self):
         """
@@ -81,7 +87,7 @@ class HaikuText(object):
                        (self.filtered_word(lines[1][-1]), self.filtered_word(lines[2][0])))
         return bigrams
     
-    def haiku(self, strip_punctuation=False):
+    def haiku(self, strip_punctuation=True):
         """
         Find a haiku in this text
         """
@@ -142,5 +148,5 @@ class HaikuText(object):
         if syllable_count > 0:
             return (syllable_count, word)
         else:
-            #give the word 1 syllable as it's probably something like f*** or thbpt!
-            return (1, word)
+            print word
+            raise NonwordError("%s has no syllables" % word)
