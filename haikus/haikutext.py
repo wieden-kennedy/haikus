@@ -86,14 +86,38 @@ class HaikuText(object):
             bigrams = ((self.filtered_word(lines[0][-1]), self.filtered_word(lines[1][0])),
                        (self.filtered_word(lines[1][-1]), self.filtered_word(lines[2][0])))
         return bigrams
-    
+
+
     def haiku(self, strip_punctuation=True):
+        """
+        find a haiku at the beginning of the text
+        """
+        syllable_map = self.syllable_map(strip_punctuation=strip_punctuation)
+        return self.find_haiku(syllable_map)
+
+    def haikus(self, strip_punctuation=True):
+        """
+        find all haikus in the text
+        """
+        haikus = []
+        syllable_map = self.syllable_map(strip_punctuation=strip_punctuation)
+
+        for i in range(len(syllable_map)):
+            portion = syllable_map[i:]
+            if (sum(word[0] for word in portion) > 17):
+                haiku = find_haiku(portion)
+                if haiku:
+                    haikus.append(haiku)
+            else:
+                break
+        return [haiku for haiku in haikus if haiku]
+
+    def find_haiku(self, syllable_map):
         """
         Find a haiku in this text
         """
         haiku = [5, 12, 17]
         cumulative = [0]
-        syllable_map = self.syllable_map(strip_punctuation=strip_punctuation)
         for w in syllable_map:
             cumulative.append(cumulative[-1] + w[0])
         cumulative = cumulative[1:]
@@ -120,7 +144,7 @@ class HaikuText(object):
         """
         Return True if this text contains a haiku
         """
-        return bool(self.haiku())
+        return self.haiku() is not False
     
     def calculate_quality(self, evaluators=None):
         """
@@ -129,16 +153,18 @@ class HaikuText(object):
         """
         if evaluators is None:
             evaluators = DEFAULT_HAIKU_EVALUATORS
+
         score = 0
-        if self.has_haiku():
+        if self.haiku():
             for evaluator_class, weight in evaluators:
                 evaluator = evaluator_class(weight=weight)
-                score += evaluator(self)
+                score += evaluator(self.haiku())
             try:
                 score /= sum([weight for evaluator, weight in evaluators])
             except ZeroDivisionError:
                 return 0
         return score
+        
 
     def unknown_word_handler(self, word):
         """

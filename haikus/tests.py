@@ -11,7 +11,7 @@ class TestHaikuText(TestCase):
 
         #some 'dummy' evaluators
         class MediocreHaikuEvaluator(HaikuEvaluator):
-            def evaluate(self, comment):
+            def evaluate(self, haiku):
                 return 50
 
         default = (HaikuEvaluator, 1)
@@ -24,30 +24,37 @@ class TestHaikuText(TestCase):
 
         #It's a haiku, check its quality
         self.assertEqual(comment2.calculate_quality(evaluators=[default,]), 100)
+
         #Evaluators are averaged
         self.assertEqual(comment2.calculate_quality(evaluators=[default, mediocre]), 150/2)
+
+     def test_find_haiku(self):
+          
 
 class EvaluatorsTest(TestCase):   
     def test_line_ending_nva_evaluator(self):
         """
-        Test that the line noun/verb/adjective ending part-of-speech evaluator 
-        gives the expected scores to haikus
+        Test that the line noun/verb/adjective ending part-of-speech evaluator gives the expected scores to haikus
         """
         pos_evaluator = NounVerbAdjectiveLineEndingEvaluator()
         
         #comment with 2 lines that end in noun/verbs
         text = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.")
+        haiku = text.haiku()
         #should score 66
-        self.assertEqual(pos_evaluator(text), 66)
+        self.assertEqual(pos_evaluator(haiku), 66)
 
         # 1 verb, 1 noun, 1 pronoun
         text.set_text("Application is the most wonderful artist that man can show us")
+        haiku = text.haiku()
         #should score 66
-        self.assertEqual(pos_evaluator(text), 2*100/3) 
+        self.assertEqual(pos_evaluator(haiku), 2*100/3) 
                
         #No verbs/nouns at line ends,
         text.set_text("They jumped ship on us the boat is very never that man can show us")
-        self.assertEqual(pos_evaluator(text), 0) 
+        haiku = text.haiku()
+        
+        self.assertEqual(pos_evaluator(haiku), 0) 
 
     def test_joining_words_line_ending_evaluator(self):
         """
@@ -58,17 +65,21 @@ class EvaluatorsTest(TestCase):
         
         #comment with 2 lines that end in noun/verbs
         text = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.")
+        haiku = text.haiku()
         #should score 100 
-        self.assertEqual(join_evaluator(text), 100)
+        self.assertEqual(join_evaluator(haiku), 100)
 
         # 2 good lines, one ending in is
         text.set_text("Application and the most wonderful artist that man can show us")
+        haiku = text.haiku()
         #should score 66
-        self.assertEqual(join_evaluator(text), 2*100/3) 
+        self.assertEqual(join_evaluator(haiku), 2*100/3) 
                
         #No verbs/nouns at line ends,
-        text.set_text("They jumped right on in the boat is never sunk and that man can show of")        
-        self.assertEqual(join_evaluator(text), 0)
+        text.set_text("They jumped right on in the boat is never sunk and that man can show of")
+        haiku = text.haiku()
+        
+        self.assertEqual(join_evaluator(haiku), 0)
 
     def test_ends_in_noun_evaluator(self):
         """
@@ -78,18 +89,21 @@ class EvaluatorsTest(TestCase):
         
         #Doesn't end in a noun
         text = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.")
+        haiku = text.haiku()
         #should score 0
-        self.assertEqual(noun_evaluator(text), 0)
+        self.assertEqual(noun_evaluator(haiku), 0)
 
         #Ends in a pronoun
         text.set_text("Application is the most wonderful artist that man can show us")
+        haiku = text.haiku()
         #should score 100
-        self.assertEqual(noun_evaluator(text), 100)
+        self.assertEqual(noun_evaluator(haiku), 100)
 
         #Ends in a noun
         text.set_text("Application is the most wonderful artist that man can show god")
+        haiku = text.haiku()
         #should score 100
-        self.assertEqual(noun_evaluator(text), 100)
+        self.assertEqual(noun_evaluator(haiku), 100)
 
 class PrepositionalCountEvaluatorTest(TestCase):
     """
