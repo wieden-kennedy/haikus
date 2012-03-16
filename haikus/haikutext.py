@@ -50,20 +50,17 @@ class HaikuText(object):
         """
         word = word.encode('ascii', 'ignore').strip().lower()
         try:
-            matches = WORD_DICT[self.filtered_word(word)]
+            matches = WORD_DICT[word]
             for tree in matches:
                 return (len([phoneme for phoneme in tree if phoneme[-1].isdigit()]), word)
         except KeyError:
             return self.unknown_word_handler(word)
 
-    def syllable_map(self, strip_punctuation=False):
+    def syllable_map(self):
         """
         Map words in this text to their syllable count
         """
-        if strip_punctuation:
-            s = self.filtered_text()
-        else:
-            s = self.get_text()
+        s = self.filtered_text()
         try:
             return map(self.word_syllables, s.split())
         except NonwordError:
@@ -75,42 +72,29 @@ class HaikuText(object):
         """
         return sum([t[0] for t in self.syllable_map()])
 
-    def line_end_bigrams(self):
-        """
-        Find the bigrams that occur across any two lines in this text's
-        haiku
-        """
-        bigrams = ()
-        if self.has_haiku():
-            lines = [line.split(" ") for line in self.haiku()]
-            bigrams = ((self.filtered_word(lines[0][-1]), self.filtered_word(lines[1][0])),
-                       (self.filtered_word(lines[1][-1]), self.filtered_word(lines[2][0])))
-        return bigrams
-
-
-    def haiku(self, strip_punctuation=True):
+    def get_haiku(self):
         """
         find a haiku at the beginning of the text
         """
-        syllable_map = self.syllable_map(strip_punctuation=strip_punctuation)
+        syllable_map = self.syllable_map()
         return self.find_haiku(syllable_map)
 
-    def haikus(self, strip_punctuation=True):
+    def get_haikus(self):
         """
         find all haikus in the text
         """
         haikus = []
-        syllable_map = self.syllable_map(strip_punctuation=strip_punctuation)
+        syllable_map = self.syllable_map()
 
         for i in range(len(syllable_map)):
             portion = syllable_map[i:]
-            if (sum(word[0] for word in portion) > 17):
+            if (sum(word[0] for word in portion) >= 17):
                 haiku = find_haiku(portion)
                 if haiku:
                     haikus.append(haiku)
             else:
                 break
-        return [haiku for haiku in haikus if haiku]
+        return haikus
 
     def find_haiku(self, syllable_map):
         """
@@ -136,7 +120,7 @@ class HaikuText(object):
                     start = enum_lookup[lookup[line] + 1][0]
                 except IndexError:
                     pass
-            return lines
+            return Haiku(lines)
         else:
             return False
         
@@ -144,27 +128,7 @@ class HaikuText(object):
         """
         Return True if this text contains a haiku
         """
-        return self.haiku() is not False
-    
-    def calculate_quality(self, evaluators=None):
-        """
-        Calculate the score of this text's haiku across a list of evaluators
-        and return the mean average.
-        """
-        if evaluators is None:
-            evaluators = DEFAULT_HAIKU_EVALUATORS
-
-        score = 0
-        if self.haiku():
-            for evaluator_class, weight in evaluators:
-                evaluator = evaluator_class(weight=weight)
-                score += evaluator(self.haiku())
-            try:
-                score /= sum([weight for evaluator, weight in evaluators])
-            except ZeroDivisionError:
-                return 0
-        return score
-        
+        return self.get_haiku() is not False
 
     def unknown_word_handler(self, word):
         """
@@ -175,3 +139,42 @@ class HaikuText(object):
             return (syllable_count, word)
         else:
             raise NonwordError("%s has no syllables" % word)
+
+
+class Haiku(object):
+    """
+    A simple wrapper for a haiku's three lines
+    """
+    def __init__(self, lines=[]):
+        self._lines = lines
+
+    def get_lines(self):
+        return self._lines
+    
+    def calculate_quality(self, evaluators=None):
+        """
+        Calculate this haiku's quality
+        """
+        score = 0
+        for evaluator_class, weight in evaluators:
+            evaluator = evaluator_class(weight=weight)
+            score += evaluator(self)
+        try:
+            score /= sum([weight for evaluator, weight in evaluators])
+        except ZeroDivisionError:
+            pass
+        return score
+
+    def line_end_bigrams(self):
+        """
+        Find the bigrams that occur across any two lines in this text's
+        haiku
+        """
+        bigrams = ()
+        lines = [line.split(" ") for line in self.get_lines()]
+        bigrams = ((lines[0][-1],lines[1][0]),
+                   (lines[1][-1],lines[2][0]))
+        return bigrams
+
+    def flattened_lines(self):
+        return ' '.join(self.get_lines())

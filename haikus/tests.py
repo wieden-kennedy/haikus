@@ -1,13 +1,13 @@
+import math
 from unittest import TestCase
 from haikus import HaikuText
 from haikus.evaluators import HaikuEvaluator, NounVerbAdjectiveLineEndingEvaluator, \
     JoiningWordLineEndingEvaluator, EndsInNounEvaluator, PrepositionCountEvaluator
 
 
-class TestHaikuText(TestCase):
+class TestHaiku(TestCase):
      def test_calculate_quality(self):
-        comment = HaikuText(text="Not a haiku")       
-        comment2 = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.")
+        haiku = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.").get_haiku()
 
         #some 'dummy' evaluators
         class MediocreHaikuEvaluator(HaikuEvaluator):
@@ -17,19 +17,13 @@ class TestHaikuText(TestCase):
         default = (HaikuEvaluator, 1)
         mediocre = (MediocreHaikuEvaluator, 1)
 
-        #Not even remotely a haiku, quality == 0
-        self.assertEqual(comment.calculate_quality(), 0)
-        #Still 0 with dumb_evaluator
-        self.assertEqual(comment.calculate_quality(evaluators=[default,]), 0)
-
         #It's a haiku, check its quality
-        self.assertEqual(comment2.calculate_quality(evaluators=[default,]), 100)
+        self.assertEqual(haiku.calculate_quality(evaluators=[default,]), 100)
 
         #Evaluators are averaged
-        self.assertEqual(comment2.calculate_quality(evaluators=[default, mediocre]), 150/2)
+        self.assertEqual(haiku.calculate_quality(evaluators=[default, mediocre]), 150/2)
 
-     def test_find_haiku(self):
-          
+     
 
 class EvaluatorsTest(TestCase):   
     def test_line_ending_nva_evaluator(self):
@@ -40,19 +34,19 @@ class EvaluatorsTest(TestCase):
         
         #comment with 2 lines that end in noun/verbs
         text = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.")
-        haiku = text.haiku()
+        haiku = text.get_haiku()
         #should score 66
         self.assertEqual(pos_evaluator(haiku), 66)
 
         # 1 verb, 1 noun, 1 pronoun
         text.set_text("Application is the most wonderful artist that man can show us")
-        haiku = text.haiku()
+        haiku = text.get_haiku()
         #should score 66
         self.assertEqual(pos_evaluator(haiku), 2*100/3) 
                
         #No verbs/nouns at line ends,
         text.set_text("They jumped ship on us the boat is very never that man can show us")
-        haiku = text.haiku()
+        haiku = text.get_haiku()
         
         self.assertEqual(pos_evaluator(haiku), 0) 
 
@@ -65,19 +59,19 @@ class EvaluatorsTest(TestCase):
         
         #comment with 2 lines that end in noun/verbs
         text = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.")
-        haiku = text.haiku()
-        #should score 100 
+        haiku = text.get_haiku()
+        #should score 66 
         self.assertEqual(join_evaluator(haiku), 100)
 
         # 2 good lines, one ending in is
         text.set_text("Application and the most wonderful artist that man can show us")
-        haiku = text.haiku()
+        haiku = text.get_haiku()
         #should score 66
         self.assertEqual(join_evaluator(haiku), 2*100/3) 
                
         #No verbs/nouns at line ends,
         text.set_text("They jumped right on in the boat is never sunk and that man can show of")
-        haiku = text.haiku()
+        haiku = text.get_haiku()
         
         self.assertEqual(join_evaluator(haiku), 0)
 
@@ -88,20 +82,20 @@ class EvaluatorsTest(TestCase):
         noun_evaluator = EndsInNounEvaluator()
         
         #Doesn't end in a noun
-        text = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence again.")
-        haiku = text.haiku()
+        text = HaikuText(text="An old silent pond... A frog jumps into the pond. Splash! Silence shopping")
+        haiku = text.get_haiku()
         #should score 0
         self.assertEqual(noun_evaluator(haiku), 0)
 
         #Ends in a pronoun
         text.set_text("Application is the most wonderful artist that man can show us")
-        haiku = text.haiku()
+        haiku = text.get_haiku()
         #should score 100
         self.assertEqual(noun_evaluator(haiku), 100)
 
         #Ends in a noun
         text.set_text("Application is the most wonderful artist that man can show god")
-        haiku = text.haiku()
+        haiku = text.get_haiku()
         #should score 100
         self.assertEqual(noun_evaluator(haiku), 100)
 
@@ -110,7 +104,7 @@ class PrepositionalCountEvaluatorTest(TestCase):
     Test the preposition count evaluator.
     """
     def setUp(self):
-        self.comment_a = HaikuText(text="Dog in the floor at, one onto the home for it, jump into the pool")
+        self.comment_a = HaikuText(text="Dog in the floor mat, one onto the home for it, jump into the pool")
         self.comment_b = HaikuText(text="this is a new vogue, she always has a new vogue, she never repeats")
     
     def test_preposition_count(self):
@@ -123,8 +117,8 @@ class PrepositionalCountEvaluatorTest(TestCase):
             15 words
         """
         assert self.comment_a.has_haiku() is True
-        score = self.comment_a.calculate_quality(evaluators=[(PrepositionCountEvaluator, 1)])
-        self.assertEquals(score, 0)
+        score = self.comment_a.get_haiku().calculate_quality(evaluators=[(PrepositionCountEvaluator, 1)])
+        self.assertEquals(score, 100 - math.exp(4))
 
         """
         Test B:
@@ -133,15 +127,15 @@ class PrepositionalCountEvaluatorTest(TestCase):
             15 words
         """
         assert self.comment_b.has_haiku() is True
-        score = self.comment_b.calculate_quality(evaluators=[(PrepositionCountEvaluator, 1)])
+        score = self.comment_b.get_haiku().calculate_quality(evaluators=[(PrepositionCountEvaluator, 1)])
         self.assertEquals(score, 99)
         
 class BigramExtraction(TestCase):
     def setUp(self):
         self.comment = HaikuText(text="Dog in the floor at, one onto the home for it, jump into the pool")
-    
+        self.haiku = self.comment.get_haiku()
     def test_bigram_extraction(self):
-        bigrams = self.comment.line_end_bigrams()
+        bigrams = self.haiku.line_end_bigrams()
         self.assertEquals((('at', 'one'), ('it', 'jump')), bigrams)
 
 
@@ -153,21 +147,4 @@ class UnknownWordHandling(TestCase):
         self.assertEqual(WORD_DICT.get("foobaz"), None)
 
         #however, we can count 2 syllables in it anyhow
-        self.assertTrue((2, "foobaz") in haiku.syllable_map())
-
-class HaikuIsFullSentenceEvaluatorTest(TestCase):
-    """
-    Test the haiku is full sentence evaluation
-    """
-    pass
-
-class LineIsFullSentenceEvaluatorTest(TestCase):
-    """
-    """
-    pass
-
-class LineEndsInPunctuationEvaluatorTest(TestCase):
-    """
-    """
-    pass
-    
+        self.assertTrue((2, "foobaz") in haiku.syllable_map())    
