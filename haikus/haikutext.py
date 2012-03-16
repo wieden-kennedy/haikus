@@ -120,7 +120,9 @@ class HaikuText(object):
                     start = enum_lookup[lookup[line] + 1][0]
                 except IndexError:
                     pass
-            return Haiku(lines)
+            haiku = Haiku()
+            haiku.set_lines(lines)
+            return haiku
         else:
             return False
         
@@ -145,11 +147,11 @@ class Haiku(object):
     """
     A simple wrapper for a haiku's three lines
     """
-    def __init__(self, lines=[]):
-        self._lines = lines
-
     def get_lines(self):
         return self._lines
+
+    def set_lines(self, lines):
+        self._lines = lines
     
     def calculate_quality(self, evaluators=None):
         """
