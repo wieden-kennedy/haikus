@@ -89,7 +89,7 @@ class HaikuText(object):
         for i in range(len(syllable_map)):
             portion = syllable_map[i:]
             if (sum(word[0] for word in portion) >= 17):
-                haiku = find_haiku(portion)
+                haiku = self.find_haiku(portion)
                 if haiku:
                     haikus.append(haiku)
             else:
