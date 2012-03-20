@@ -174,8 +174,11 @@ class Haiku(object):
         """
         bigrams = ()
         lines = [line.split(" ") for line in self.get_lines()]
-        bigrams = ((lines[0][-1],lines[1][0]),
-                   (lines[1][-1],lines[2][0]))
+        try:
+            bigrams = ((lines[0][-1],lines[1][0]),
+                       (lines[1][-1],lines[2][0]))
+        except IndexError:
+            return (['', ''], ['', ''])
         return bigrams
 
     def flattened_lines(self):
