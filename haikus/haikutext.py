@@ -5,7 +5,7 @@ defined criteria
 import nltk
 import string
 from nltk.corpus import cmudict
-from nltk_contrib.readability import syllables_en
+from nltk_util import syllables_en
 from haikus.evaluators import DEFAULT_HAIKU_EVALUATORS
 
 global WORD_DICT
