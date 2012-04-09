@@ -9,7 +9,11 @@ from nltk_util import syllables_en
 from haikus.evaluators import DEFAULT_HAIKU_EVALUATORS
 
 global WORD_DICT
-WORD_DICT = cmudict.dict()
+try:
+    WORD_DICT = cmudict.dict()
+except LookupError:
+    nltk.download('cmudict')
+    WORD_DICT = cmudict.dict()
 
 class NonwordError(Exception):
     pass
