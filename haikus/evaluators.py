@@ -12,7 +12,6 @@ class HaikuEvaluator(object):
     Base HaikuEvaluator -- simply a callable class
     with weight and an evaluate method
     """
-    requires_punctuation = False
     def __init__(self, weight=1):
         self.weight = weight
         self.pre_evaluate()
@@ -42,7 +41,11 @@ class NounVerbAdjectiveLineEndingEvaluator(HaikuEvaluator):
         nv_regex = re.compile("(^N.*|^V.*|^J.*)")
     
         for line in haiku.get_lines():
-            tagged_words = nltk.pos_tag(line.split())
+            try:
+                tagged_words = nltk.pos_tag(line.split())
+            except LookupError:
+                nltk.download('maxent_treebank_pos_tagger')
+                tagged_words = nltk.pos_tag(line.split())
 
             if nv_regex.match(tagged_words[-1][1]) is not None:
                 score += 100
