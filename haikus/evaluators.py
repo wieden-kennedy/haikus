@@ -41,12 +41,7 @@ class NounVerbAdjectiveLineEndingEvaluator(HaikuEvaluator):
         nv_regex = re.compile("(^N.*|^V.*|^J.*)")
     
         for line in haiku.get_lines():
-            try:
-                tagged_words = nltk.pos_tag(line.split())
-            except LookupError:
-                nltk.download('maxent_treebank_pos_tagger')
-                tagged_words = nltk.pos_tag(line.split())
-
+            tagged_words = nltk.pos_tag(line.split())
             if nv_regex.match(tagged_words[-1][1]) is not None:
                 score += 100
         score = score/len(haiku.get_lines())
