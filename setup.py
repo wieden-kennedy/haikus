@@ -12,7 +12,7 @@ setup(
     author_email="grant.thomas@wk.com",
     url="https://github.com/wieden-kennedy/haikus",
     version="0.0.1",
-    install_requires=["nltk", "numpy"],
+    install_requires=["nltk"],
     packages=find_packages(),
     zip_safe=False,
     include_package_data=True,
